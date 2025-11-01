@@ -1,0 +1,70 @@
+apiVersion: anywhere.eks.amazonaws.com/v1alpha1
+kind: Cluster
+metadata:
+  annotations:
+    anywhere.eks.amazonaws.com/managed-by-cli: "true"
+    anywhere.eks.amazonaws.com/management-components-version: v0.23.4
+  name: eks-anywhere-gitops-dev
+  namespace: default
+spec:
+  clusterNetwork:
+    cniConfig:
+      cilium:
+        ipv4NativeRoutingCIDR: 192.168.0.0/16
+        policyEnforcementMode: default
+        routingMode: direct
+    pods:
+      cidrBlocks:
+      - 192.168.0.0/16
+    services:
+      cidrBlocks:
+      - 10.96.0.0/12
+  controlPlaneConfiguration:
+    count: 1
+    machineHealthCheck:
+      maxUnhealthy: 100%
+  datacenterRef:
+    kind: DockerDatacenterConfig
+    name: eks-anywhere-gitops-dev
+  eksaVersion: v0.23.4
+  externalEtcdConfiguration:
+    count: 1
+  gitOpsRef:
+    kind: FluxConfig
+    name: azure-devops-flux-config
+  kubernetesVersion: "1.33"
+  machineHealthCheck:
+    maxUnhealthy: 100%
+    nodeStartupTimeout: 10m0s
+    unhealthyMachineTimeout: 5m0s
+  managementCluster:
+    name: eks-anywhere-gitops-dev
+  workerNodeGroupConfigurations:
+  - count: 1
+    machineHealthCheck:
+      maxUnhealthy: 40%
+    name: md-0
+
+---
+apiVersion: anywhere.eks.amazonaws.com/v1alpha1
+kind: DockerDatacenterConfig
+metadata:
+  name: eks-anywhere-gitops-dev
+  namespace: default
+spec: {}
+
+---
+apiVersion: anywhere.eks.amazonaws.com/v1alpha1
+kind: FluxConfig
+metadata:
+  name: azure-devops-flux-config
+  namespace: default
+spec:
+  branch: main
+  clusterConfigPath: clusters/eks-anywhere-gitops-dev
+  git:
+    repositoryUrl: ssh://git@github.com/Yvette-Lau/k8s-sandbox.git
+    sshKeyAlgorithm: rsa
+  systemNamespace: flux-system
+
+---
